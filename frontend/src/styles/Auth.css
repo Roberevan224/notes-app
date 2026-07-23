@@ -1,0 +1,100 @@
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-box {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-box h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 32px;
+}
+
+.auth-box h2 {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 24px;
+}
+
+.auth-box form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-box input {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.auth-box input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.auth-box button[type="submit"] {
+  padding: 12px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.auth-box button[type="submit"]:hover:not(:disabled) {
+  background: #5568d3;
+}
+
+.auth-box button[type="submit"]:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-box p {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 14px;
+}
+
+.toggle-btn:hover {
+  color: #5568d3;
+}

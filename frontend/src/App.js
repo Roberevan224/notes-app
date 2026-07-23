@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from './firebase';
 import './App.css';
+import Auth from './components/Auth';
 import NotesList from './components/NotesList';
 import NoteEditor from './components/NoteEditor';
 import SearchBar from './components/SearchBar';
@@ -16,22 +19,31 @@ import {
 } from './api/notesApi';
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedNote, setSelectedNote] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [appLoading, setAppLoading] = useState(true);
 
-  // Load notes and categories on mount
+  // Check if user is logged in
   useEffect(() => {
-    loadData();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+      if (currentUser) {
+        loadData();
+      }
+    });
+    return unsubscribe;
   }, []);
 
   const loadData = async () => {
     try {
-      setLoading(true);
+      setAppLoading(true);
       const [notesRes, categoriesRes] = await Promise.all([
         getNotes(),
         getCategories(),
@@ -41,7 +53,20 @@ function App() {
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
-      setLoading(false);
+      setAppLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      setNotes([]);
+      setCategories([]);
+      setSelectedNote(null);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error logging out:', error);
     }
   };
 
@@ -114,7 +139,9 @@ function App() {
     if (categoryId === null) {
       loadData();
     } else {
-      const filtered = notes.filter((note) => note.category?._id === categoryId);
+      const filtered = notes.filter(
+        (note) => note.category?._id === categoryId
+      );
       setNotes(filtered);
     }
   };
@@ -126,7 +153,18 @@ function App() {
     return notes.filter((note) => note.category?._id === selectedCategory);
   };
 
+  // Show loading screen while checking authentication
   if (loading) {
+    return <div className="app loading">Loading...</div>;
+  }
+
+  // Show login/signup if not authenticated
+  if (!user) {
+    return <Auth onAuthSuccess={() => {}} />;
+  }
+
+  // Show app if authenticated
+  if (appLoading) {
     return <div className="app loading">Loading...</div>;
   }
 
@@ -134,6 +172,12 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>📝 Notes App</h1>
+        <div className="header-actions">
+          <span className="user-email">{user.email}</span>
+          <button className="logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </header>
 
       <div className="app-container">
@@ -149,7 +193,10 @@ function App() {
         <main className="main-content">
           <div className="notes-section">
             <div className="notes-header">
-              <SearchBar onSearch={handleSearch} onClear={handleClearSearch} />
+              <SearchBar
+                onSearch={handleSearch}
+                onClear={handleClearSearch}
+              />
               <button className="new-note-btn" onClick={handleNewNote}>
                 + New Note
               </button>
