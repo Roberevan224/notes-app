@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const app = express();
+const authenticateToken = require('./middleware/auth');
 
 // Middleware
 app.use(cors());
@@ -20,8 +21,8 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.log('MongoDB connection error:', err));
 
 // Routes
-app.use('/api/notes', require('./routes/notes'));
-app.use('/api/categories', require('./routes/categories'));
+app.use('/api/notes', authenticateToken, require('./routes/notes'));
+app.use('/api/categories', authenticateToken, require('./routes/categories'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
