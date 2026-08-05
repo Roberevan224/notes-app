@@ -1,9 +1,23 @@
 import axios from 'axios';
+import { auth } from '../firebase';
 
 const API_BASE_URL = 'https://notes-app-production-6a04.up.railway.app/api';
 
 const notesApi = axios.create({
   baseURL: API_BASE_URL,
+});
+
+// Add Firebase token to every request
+notesApi.interceptors.request.use(async (config) => {
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (error) {
+    console.error('Error getting token:', error);
+  }
+  return config;
 });
 
 // Notes endpoints
