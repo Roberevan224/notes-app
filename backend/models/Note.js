@@ -15,6 +15,14 @@ const noteSchema = new mongoose.Schema({
     ref: 'Category',
     required: false,
   },
+  userId: {
+    type: String,
+    required: true,
+  },
+  userEmail: {
+    type: String,
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
