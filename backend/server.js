@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const app = express();
-const authenticateToken = require('./middleware/auth');
 
 // Middleware
 app.use(cors());
@@ -17,12 +16,28 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log('MongoDB connection error:', err));
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => console.log('❌ MongoDB connection error:', err));
+
+// PIN authentication middleware
+const PIN = '1234'; // Change this to your desired PIN
+
+const authenticatePin = (req, res, next) => {
+  const pin = req.headers['x-pin'];
+  
+  if (!pin) {
+    return res.status(401).json({ error: 'PIN required' });
+  }
+  
+  if (pin !== PIN) {
+    return res.status(403).json({ error: 'Invalid PIN' });
+  }
+  
+  next();
+};
 
 // Routes
-app.use('/api/notes', authenticateToken, require('./routes/notes'));
-app.use('/api/categories', authenticateToken, require('./routes/categories'));
+app.use('/api/notes', authenticatePin, require('./routes/notes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -37,5 +52,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
