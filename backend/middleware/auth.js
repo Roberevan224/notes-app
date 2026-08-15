@@ -1,20 +1,27 @@
 const admin = require('firebase-admin');
-const path = require('path');
 
 // Initialize Firebase Admin SDK
-try {
-  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_KEY 
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-    : require(path.join(__dirname, '../firebase-service-account-key.json'));
-  
-  if (!admin.apps.length) {
+if (!admin.apps.length) {
+  try {
+    let serviceAccount;
+    
+    // Try environment variable first
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+    } else {
+      // Fallback to local file (development only)
+      serviceAccount = require('../firebase-service-account-key.json');
+    }
+    
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccountPath),
+      credential: admin.credential.cert(serviceAccount),
     });
+    
+    console.log('✅ Firebase Admin SDK initialized successfully');
+  } catch (error) {
+    console.error('❌ Firebase Admin initialization failed:', error.message);
+    process.exit(1);
   }
-} catch (error) {
-  console.error('Firebase Admin initialization error:', error);
-  console.error('Make sure FIREBASE_SERVICE_ACCOUNT_KEY is set or firebase-service-account-key.json exists');
 }
 
 const authenticateToken = async (req, res, next) => {
@@ -23,6 +30,7 @@ const authenticateToken = async (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
+      console.warn('⚠️ No token provided');
       return res.status(401).json({ error: 'Access token required' });
     }
 
@@ -30,9 +38,10 @@ const authenticateToken = async (req, res, next) => {
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.userId = decodedToken.uid;
     req.userEmail = decodedToken.email;
+    console.log(`✅ User authenticated: ${req.userEmail}`);
     next();
   } catch (error) {
-    console.error('Auth error:', error);
+    console.error('❌ Auth error:', error.message);
     res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
